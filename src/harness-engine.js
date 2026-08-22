@@ -47,6 +47,55 @@ function isActivationKeyword(rawText) {
 }
 
 /**
+ * Detector de Intención de Cierre, Cancelación o Salida
+ */
+function isExitOrCancelIntent(rawText, currentState) {
+  if (!rawText) return false;
+  const clean = normalizeText(rawText).replace(/[!¡?¿,.\-_]/g, ' ').replace(/\s+/g, ' ').trim();
+
+  const explicitExitKeywords = [
+    'salir',
+    'cancelar',
+    'cancel',
+    'exit',
+    'stop',
+    'parar',
+    'cerrar',
+    'terminar',
+    'chao',
+    'adios',
+    'hasta luego',
+    'no deseo continuar',
+    'no quiero continuar',
+    'no quiero nada',
+    'no gracias',
+    'dejar asi',
+    'no autorizo',
+    'rechazo',
+    'nada mas'
+  ];
+
+  if (explicitExitKeywords.some(k => clean === k || clean.startsWith(k + ' ') || clean.endsWith(' ' + k))) {
+    return true;
+  }
+
+  // Si estamos en el primer mensaje de consentimiento (Habeas Data) o en selección
+  if (['HABEAS_DATA', 'SELECT_LANGUAGE_MODE'].includes(currentState)) {
+    const cancelTokens = ['2', 'no', 'rechazo', 'no autorizo', 'no acepto', 'cancelar', 'salir'];
+    if (cancelTokens.includes(clean)) {
+      return true;
+    }
+  }
+
+  // Negación aislada en cualquier turno (y no parte de una frase como "no me dan las pastillas")
+  if (clean === 'no' || clean === 'no gracias' || clean === 'no quiero' || clean === 'no me interesa') {
+    return true;
+  }
+
+  return false;
+}
+
+/**
  * Detector de Confusión, Dudas o Expresiones Coloquiales
  */
 function isHesitationOrConfusion(rawText) {
@@ -63,7 +112,6 @@ function isHesitationOrConfusion(rawText) {
     'que es esto',
     'que hago',
     'perdido',
-    'ayuda',
     'xd',
     'jaja',
     'jajaja',
@@ -93,7 +141,6 @@ function isPlausibleName(rawText) {
   const norm = normalizeText(rawText);
   if (isHesitationOrConfusion(norm)) return false;
   if (/^\d+$/.test(norm.replace(/\s+/g, ''))) return false;
-  // Al menos letras y espacios, sin ser una frase interrogativa
   return /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s\.\-]{4,60}$/.test(rawText.trim());
 }
 
@@ -145,14 +192,31 @@ async function processMessage(senderJid, rawMessage, mediaPayload = null) {
           "Toda su información se procesa bajo estricta reserva ética y confidencialidad.\n\n" +
           "👉 *¿Autoriza el tratamiento de sus datos para iniciar su asesoría?*\n\n" +
           "1️⃣ Responda *1* o *Sí* para continuar.\n" +
-          "2️⃣ Responda *2* o *No* para salir."
+          "2️⃣ Responda *2* o *No* para cancelar y salir."
         )
       };
     }
     return null;
   }
 
-  // 2. INTERCEPTOR UNIVERSAL DE CONFUSIÓN O DUDAS
+  // 2. INTERCEPTOR DE SALIDA / CANCELACIÓN INMEDIATA (Desde el primer mensaje o en cualquier etapa)
+  if (isExitOrCancelIntent(text, state)) {
+    sessionManager.resetSession(senderJid);
+    sessionManager.updateSession(senderJid, { flowState: 'IDLE' });
+
+    return {
+      text: (
+        "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n" +
+        "  👋  *SESIÓN FINALIZADA — JUSTICIA*\n" +
+        "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n" +
+        "Entendido. Hemos cerrado su consulta de forma segura y confidencial.\n\n" +
+        "💡 Si en algún momento desea retomar o iniciar una nueva asesoría jurídica, " +
+        "simplemente escriba *!hola* o *Hola*. ¡Que tenga un excelente día!"
+      )
+    };
+  }
+
+  // 3. INTERCEPTOR DE CONFUSIÓN O DUDAS
   if (isHesitationOrConfusion(text) && state !== 'HABEAS_DATA') {
     return {
       text: (
@@ -165,7 +229,7 @@ async function processMessage(senderJid, rawMessage, mediaPayload = null) {
     };
   }
 
-  // 3. FASE: HABEAS DATA & CONSENTIMIENTO
+  // 4. FASE: HABEAS DATA & CONSENTIMIENTO
   if (state === 'HABEAS_DATA') {
     if (['1', 'si', 'sí', 'acepto', 'autorizo', 'claro', 'dale', 'bueno', 'listo'].some(k => lower.includes(k))) {
       sessionManager.updateSession(senderJid, { flowState: 'SELECT_LANGUAGE_MODE', habeasDataConsent: true });
@@ -182,17 +246,12 @@ async function processMessage(senderJid, rawMessage, mediaPayload = null) {
           "👉 _Responda con el número *1* o *2*:_"
         )
       };
-    } else if (['2', 'no', 'rechazo', 'cancelar'].some(k => lower.includes(k))) {
-      sessionManager.updateSession(senderJid, { flowState: 'CANCELLED' });
-      return {
-        text: "Entendido. Sin la autorización de datos no podemos generar el documento legal.\nSi desea volver a consultar en cualquier momento, solo escriba *!hola*."
-      };
     } else {
-      return { text: "Por favor responda *1* (Sí, autorizo) para continuar o *2* (No) para salir:" };
+      return { text: "Por favor responda *1* (Sí, autorizo) para continuar o *2* (No, deseo salir):" };
     }
   }
 
-  // 4. FASE: SELECCIÓN DE MODO DE LENGUAJE
+  // 5. FASE: SELECCIÓN DE MODO DE LENGUAJE
   if (state === 'SELECT_LANGUAGE_MODE') {
     let mode = 'CLARO';
     if (lower.includes('2') || lower.includes('tecnico') || lower.includes('avanzado')) {
@@ -213,7 +272,7 @@ async function processMessage(senderJid, rawMessage, mediaPayload = null) {
     };
   }
 
-  // 5. FASE: CAPTURA DE NOMBRE CON VALIDACIÓN CONVERSACIONAL
+  // 6. FASE: CAPTURA DE NOMBRE CON VALIDACIÓN CONVERSACIONAL
   if (state === 'ASK_NAME') {
     if (!isPlausibleName(text)) {
       return {
@@ -230,7 +289,7 @@ async function processMessage(senderJid, rawMessage, mediaPayload = null) {
     };
   }
 
-  // 6. FASE: CAPTURA Y VALIDACIÓN DE CÉDULA
+  // 7. FASE: CAPTURA Y VALIDACIÓN DE CÉDULA
   if (state === 'ASK_CEDULA') {
     const val = validateCedula(text);
     if (!val.valid) {
@@ -247,7 +306,7 @@ async function processMessage(senderJid, rawMessage, mediaPayload = null) {
     };
   }
 
-  // 7. FASE: IDENTIFICACIÓN DE MUNICIPIO & CATÁLOGO VISUAL DE ACCIONES
+  // 8. FASE: IDENTIFICACIÓN DE MUNICIPIO & CATÁLOGO VISUAL DE ACCIONES
   if (state === 'ASK_MUNICIPIO') {
     const munInfo = findMunicipioInfo(text);
     sessionManager.updateUserData(senderJid, {
@@ -284,7 +343,7 @@ async function processMessage(senderJid, rawMessage, mediaPayload = null) {
     };
   }
 
-  // 8. FASE: TRIAJE Y SELECCIÓN DE VÍA PROCESAL
+  // 9. FASE: TRIAJE Y SELECCIÓN DE VÍA PROCESAL
   if (state === 'ASK_CATEGORY') {
     let cat = 'TUTELA_SALUD';
     let via = 'TUTELA';
@@ -362,7 +421,7 @@ async function processMessage(senderJid, rawMessage, mediaPayload = null) {
     return { text: promptMsg };
   }
 
-  // 9. FASE: DESCRIPCIÓN DE HECHOS & BUCLE PROBATORIO PROACTIVO
+  // 10. FASE: DESCRIPCIÓN DE HECHOS & BUCLE PROBATORIO PROACTIVO
   if (state === 'ASK_DESCRIPTION') {
     if (text.length < 5 && !mediaPayload) {
       return { text: "Por favor cuéntenos un poco más de detalle sobre lo sucedido para redactar su documento:" };
@@ -393,7 +452,7 @@ async function processMessage(senderJid, rawMessage, mediaPayload = null) {
     return getConfirmationSummary(session.userData, isClaro);
   }
 
-  // 10. FASE: RESPUESTA AL BUCLE PROBATORIO
+  // 11. FASE: RESPUESTA AL BUCLE PROBATORIO
   if (state === 'PROBATIVE_LOOP') {
     if (mediaPayload || ['si', 'sí', 'tengo', 'adjunto', 'foto', 'claro', 'aqui'].some(k => lower.includes(k))) {
       sessionManager.updateUserData(senderJid, { tienePruebas: true });
@@ -402,7 +461,7 @@ async function processMessage(senderJid, rawMessage, mediaPayload = null) {
     return getConfirmationSummary(session.userData, isClaro);
   }
 
-  // 11. FASE: VALIDACIÓN CIUDADANA Y ENSAMBLADO FINAL EN PDF
+  // 12. FASE: VALIDACIÓN CIUDADANA Y ENSAMBLADO FINAL EN PDF
   if (state === 'CONFIRM_CASE') {
     if (['1', 'si', 'sí', 'confirmar', 'generar', 'listo', 'correcto', 'proceder'].some(k => lower.includes(k))) {
       try {
@@ -475,5 +534,6 @@ function getConfirmationSummary(u, isClaro) {
 module.exports = {
   processMessage,
   isActivationKeyword,
+  isExitOrCancelIntent,
   isHesitationOrConfusion
 };
