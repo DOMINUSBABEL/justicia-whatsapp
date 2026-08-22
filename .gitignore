@@ -24,3 +24,5 @@ pino.log
 .DS_Store
 Thumbs.db
 Desktop.ini
+
+bot_config.json

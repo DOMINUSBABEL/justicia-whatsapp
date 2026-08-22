@@ -1,0 +1,98 @@
+{
+  "andes": {
+    "municipio": "Andes",
+    "subregion": "Suroeste",
+    "juzgado": "Juzgado Promiscuo Municipal de Andes",
+    "email_juzgado": "j01prmpalandes@cendoj.ramajudicial.gov.co",
+    "personeria": "Personería Municipal de Andes",
+    "email_personeria": "personeria@andes-antioquia.gov.co"
+  },
+  "apartado": {
+    "municipio": "Apartadó",
+    "subregion": "Urabá",
+    "juzgado": "Oficina Judicial de Reparto - Circuito Apartadó",
+    "email_juzgado": "ofijudapartado@cendoj.ramajudicial.gov.co",
+    "personeria": "Personería Municipal de Apartadó",
+    "email_personeria": "personeria@apartado.gov.co"
+  },
+  "caucasia": {
+    "municipio": "Caucasia",
+    "subregion": "Bajo Cauca",
+    "juzgado": "Oficina de Reparto Judicial de Caucasia",
+    "email_juzgado": "repartocaucasia@cendoj.ramajudicial.gov.co",
+    "personeria": "Personería Municipal de Caucasia",
+    "email_personeria": "personeria@caucasia-antioquia.gov.co"
+  },
+  "rionegro": {
+    "municipio": "Rionegro",
+    "subregion": "Oriente",
+    "juzgado": "Oficina Judicial de Reparto Rionegro",
+    "email_juzgado": "ofijudrionegro@cendoj.ramajudicial.gov.co",
+    "personeria": "Personería Municipal de Rionegro",
+    "email_personeria": "contacto@personeriarionegro.gov.co"
+  },
+  "santa fe de antioquia": {
+    "municipio": "Santa Fe de Antioquia",
+    "subregion": "Occidente",
+    "juzgado": "Juzgado Promiscuo Municipal de Santa Fe de Antioquia",
+    "email_juzgado": "j01prmpalsfeant@cendoj.ramajudicial.gov.co",
+    "personeria": "Personería Municipal de Santa Fe de Antioquia",
+    "email_personeria": "personeria@santafedeantioquia-antioquia.gov.co"
+  },
+  "yarumal": {
+    "municipio": "Yarumal",
+    "subregion": "Norte",
+    "juzgado": "Juzgado Promiscuo Municipal de Yarumal",
+    "email_juzgado": "j01prmpalyarumal@cendoj.ramajudicial.gov.co",
+    "personeria": "Personería Municipal de Yarumal",
+    "email_personeria": "personeria@yarumal.gov.co"
+  },
+  "segovia": {
+    "municipio": "Segovia",
+    "subregion": "Nordeste",
+    "juzgado": "Juzgado Promiscuo Municipal de Segovia",
+    "email_juzgado": "j01prmpalsegovia@cendoj.ramajudicial.gov.co",
+    "personeria": "Personería Municipal de Segovia",
+    "email_personeria": "personeria@segovia-antioquia.gov.co"
+  },
+  "puerto berrio": {
+    "municipio": "Puerto Berrío",
+    "subregion": "Magdalena Medio",
+    "juzgado": "Juzgado Promiscuo Municipal de Puerto Berrío",
+    "email_juzgado": "j01prmpalpberrio@cendoj.ramajudicial.gov.co",
+    "personeria": "Personería Municipal de Puerto Berrío",
+    "email_personeria": "personeria@puertoberrio-antioquia.gov.co"
+  },
+  "medellin": {
+    "municipio": "Medellín",
+    "subregion": "Valle de Aburrá",
+    "juzgado": "Oficina Judicial de Reparto Medellín (Tutelatón / CENDOJ)",
+    "email_juzgado": "tutelasrepartomedellin@cendoj.ramajudicial.gov.co",
+    "personeria": "Personería Distrital de Medellín",
+    "email_personeria": "info@personeriamedellin.gov.co"
+  },
+  "bello": {
+    "municipio": "Bello",
+    "subregion": "Valle de Aburrá",
+    "juzgado": "Oficina de Reparto Judicial de Bello",
+    "email_juzgado": "repartobello@cendoj.ramajudicial.gov.co",
+    "personeria": "Personería Municipal de Bello",
+    "email_personeria": "contacto@personeriadebello.gov.co"
+  },
+  "turbo": {
+    "municipio": "Turbo",
+    "subregion": "Urabá",
+    "juzgado": "Juzgado Promiscuo Municipal de Turbo",
+    "email_juzgado": "j01prmpalturbo@cendoj.ramajudicial.gov.co",
+    "personeria": "Personería Distrital de Turbo",
+    "email_personeria": "personeria@turbo.gov.co"
+  },
+  "ciudad bolivar": {
+    "municipio": "Ciudad Bolívar",
+    "subregion": "Suroeste",
+    "juzgado": "Juzgado Promiscuo Municipal de Ciudad Bolívar",
+    "email_juzgado": "j01prmpalcbolivar@cendoj.ramajudicial.gov.co",
+    "personeria": "Personería Municipal de Ciudad Bolívar",
+    "email_personeria": "personeria@ciudadbolivar-antioquia.gov.co"
+  }
+}
