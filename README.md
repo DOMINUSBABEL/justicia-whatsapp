@@ -310,3 +310,10 @@ El directorio `data/antioquia_directory.json` mapea la totalidad de los municipi
 
 ## ⚖️ Licencia
 Distribuido bajo la Licencia [MIT](LICENSE). Iniciativa comunitaria adscrita a la **Agenda Antioquia 2040** y la **Cátedra G8**.
+
+
+### 🎓 Módulo Especializado: Justicia Educativa & Salud Mental Universitaria (v2.1)
+- **Cancelaciones Extemporáneas Humanizadas**: Tramitación ante Consejos de Facultad sin estigmatización ni jerga clínica patologizante.
+- **Regla de las 3 Páginas**: Generación sintética y contundente (~1.000 palabras) para maximizar la lectura y acogida por cuerpos colegiados.
+- **Generación Dual DOCX / PDF en es-CO**: Salida editable sin subrayados ortográficos rojos en Microsoft Word y PDF listo para radicación.
+- **Bucle de Retroalimentación por Notas de Voz (PTT)**: Parser de indicaciones coloquiales para acotamiento, des-patologización y toque humano.
