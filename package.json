@@ -1,6 +1,6 @@
 {
   "name": "justicia-whatsapp-openclaw",
-  "version": "1.0.0",
+  "version": "2.1.0",
   "description": "JusticIA WhatsApp: Harness Constitucional & Asistente de Litigio Estratégico para la Ruralidad de Antioquia (Agenda Antioquia 2040 | Cátedra G8)",
   "main": "src/justicia-whatsapp-bot.js",
   "scripts": {
