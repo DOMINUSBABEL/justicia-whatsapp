@@ -41,7 +41,7 @@ function getInitialState(senderJid) {
       cedula: '',
       municipio: 'Medellín',
       subregion: 'Valle de Aburrá',
-      categoriaAccion: 'TUTELA_SALUD', // TUTELA_SALUD, TUTELA_AGUA, PETICION_GENERAL, HABEAS_DATA_DATACREDITO, RECURSO_ADMINISTRATIVO, NULIDAD_CPACA, ACCION_POPULAR, G8_COMPLEJO
+      categoriaAccion: 'TUTELA_SALUD', // TUTELA_SALUD, TUTELA_AGUA, PETICION_GENERAL, HABEAS_DATA_DATACREDITO, RECURSO_ADMINISTRATIVO, NULIDAD_CPACA, ACCION_POPULAR, G8_COMPLEJO, CANCELACION_ACADEMICA_SALUD
       entidadAccionada: 'Savia Salud EPS',
       motivoConsulta: '',
       descripcionHechos: '',
@@ -55,7 +55,12 @@ function getInitialState(senderJid) {
       medidaCautelar: true,
       emailJuzgado: 'tutelasrepartomedellin@cendoj.ramajudicial.gov.co',
       emailPersoneria: 'info@personeriamedellin.gov.co',
-      generatedPdfPath: null
+      generatedPdfPath: null,
+      draftReviewStatus: 'IDLE',
+      asignaturas: [],
+      asesorDocente: '',
+      omiteDireccionFisica: true,
+      revisionDirectives: []
     }
   };
 }
