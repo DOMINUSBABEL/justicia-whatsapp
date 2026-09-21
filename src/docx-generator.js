@@ -52,6 +52,7 @@ normal_style.paragraph_format.space_after = Pt(6)
 p_date = doc.add_paragraph("Medellín, Antioquia, 18 de septiembre de 2026")
 p_date.paragraph_format.space_after = Pt(14)
 
+# Estilo sobrio judicial sin tablas grises artificiales
 p_dest = doc.add_paragraph()
 r = p_dest.add_run("Señores\nHONORABLE CONSEJO DE FACULTAD\nFacultad de Derecho y Ciencias Políticas\nUniversidad de Antioquia - UdeA")
 r.bold = True
