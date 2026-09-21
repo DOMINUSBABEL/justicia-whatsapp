@@ -1,0 +1,38 @@
+{
+  "CANCELACION_ACADEMICA_SALUD": {
+    "nombre": "Cancelación Extemporánea por Salud Mental y Permanencia Universitaria",
+    "autoridadCompetente": "Consejo de Facultad / Consejo Académico",
+    "fundamentoNormativo": "Reglamento Estudiantil de Pregrado, Ley 1616 de 2013, Sentencias T-441/12 y T-310/21",
+    "terminoRespuestaDias": 15,
+    "camposRequeridos": [
+      "nombre",
+      "cedula",
+      "programa",
+      "nivel",
+      "asignaturas",
+      "semestre",
+      "telefono",
+      "correoInstitucional",
+      "relatoEmocional",
+      "asesorDocente"
+    ],
+    "pretensionesBase": [
+      "Cancelación extemporánea de materias sin cómputo reprobatorio",
+      "No afectación del promedio de permanencia por inasistencia involuntaria",
+      "Protección del cupo y regularidad para continuidad académica"
+    ]
+  },
+  "PERMANENCIA_UNIVERSITARIA": {
+    "nombre": "Recurso de Protección de Cupo por Fuerza Mayor Sobrevenida",
+    "autoridadCompetente": "Consejo de Facultad / Vicerrectoría de Docencia",
+    "fundamentoNormativo": "Art. 67 C.P., Art. 29 C.P. (Debido Proceso Administrativo)",
+    "terminoRespuestaDias": 15,
+    "camposRequeridos": [
+      "nombre",
+      "cedula",
+      "programa",
+      "causalAlegada",
+      "soporteFuerzaMayor"
+    ]
+  }
+}
