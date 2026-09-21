@@ -1,0 +1,36 @@
+{
+  "UDEA": {
+    "nombre": "Universidad de Antioquia",
+    "sedePrincipal": "Ciudad Universitaria, Medellín",
+    "facultades": {
+      "DERECHO_Y_CIENCIA_POLITICA": {
+        "nombre": "Facultad de Derecho y Ciencias Políticas",
+        "organoColegiado": "Honorable Consejo de Facultad",
+        "pregrados": ["Derecho", "Ciencia Política"],
+        "correoSecretaria": "consejo.derechoypolitica@udea.edu.co",
+        "ubicacion": "Bloque 14, Ciudad Universitaria"
+      },
+      "MEDICINA": {
+        "nombre": "Facultad de Medicina",
+        "organoColegiado": "Honorable Consejo de Facultad",
+        "correoSecretaria": "consejofacultadmedicina@udea.edu.co"
+      },
+      "INGENIERIA": {
+        "nombre": "Facultad de Ingeniería",
+        "organoColegiado": "Honorable Consejo de Facultad",
+        "correoSecretaria": "consejofacultadingenieria@udea.edu.co"
+      }
+    }
+  },
+  "UNAL_MED": {
+    "nombre": "Universidad Nacional de Colombia - Sede Medellín",
+    "sedePrincipal": "Núcleo El Volador, Medellín",
+    "facultades": {
+      "CIENCIAS_HUMANAS_Y_ECONOMICAS": {
+        "nombre": "Facultad de Ciencias Humanas y Económicas",
+        "organoColegiado": "Consejo de Facultad",
+        "correoSecretaria": "cfche_med@unal.edu.co"
+      }
+    }
+  }
+}
