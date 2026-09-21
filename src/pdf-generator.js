@@ -39,6 +39,9 @@ function generateLegalPDF(caseData) {
         doc.text(`JUEZ ADMINISTRATIVO DEL CIRCUITO JUDICIAL DE ANTIOQUIA (EN REPARTO)`);
         doc.fontSize(10).font('Helvetica').text(`Circuito correspondiente al Municipio de ${caseData.municipio}, Antioquia.`);
         doc.fontSize(9).font('Helvetica-Oblique').text(`Buzón de Radicación: ${caseData.emailJuzgado}`);
+      } else if (cat === 'CANCELACION_ACADEMICA_SALUD') {
+        doc.text(`HONORABLE CONSEJO DE FACULTAD / COMITÉ DE ASUNTOS ESTUDIANTILES`);
+        doc.fontSize(10).font('Helvetica').text(`${caseData.entidadAccionada || 'Facultad de Derecho y Ciencias Políticas - Universidad de Antioquia'}`);
       } else if (cat === 'RECURSO_ADMINISTRATIVO') {
         doc.text(`REPRESENTANTE LEGAL / JEFE DE LA OFICINA JURÍDICA`);
         doc.fontSize(10).font('Helvetica').text(`${caseData.entidadAccionada}`);
@@ -61,11 +64,19 @@ function generateLegalPDF(caseData) {
         doc.fontSize(10).font('Helvetica-Bold').text(`DEMANDANTE: `, { continued: true }).font('Helvetica').text(`${caseData.nombre} (C.C. No. ${caseData.cedula})`);
         doc.fontSize(10).font('Helvetica-Bold').text(`DEMANDADO: `, { continued: true }).font('Helvetica').text(`${caseData.entidadAccionada}`);
         doc.fontSize(10).font('Helvetica-Bold').text(`ACTO DEMANDADO: `, { continued: true }).font('Helvetica').text(`Acto Administrativo / Resolución No. ${caseData.actoAdministrativoNumero || '[Por individualizar en traslado]'}`);
+      } else if (cat === 'CANCELACION_ACADEMICA_SALUD') {
+        doc.fontSize(11).font('Helvetica-Bold').text('REFERENCIA: SOLICITUD DE CANCELACIÓN EXTEMPORÁNEA DE ASIGNATURAS Y PROTECCIÓN DE PERMANENCIA UNIVERSITARIA', { underline: true });
+        doc.moveDown(0.5);
+        doc.fontSize(10).font('Helvetica-Bold').text(`SOLICITANTE: `, { continued: true }).font('Helvetica').text(`${caseData.nombre} (C.C. No. ${caseData.cedula})`);
+        doc.fontSize(10).font('Helvetica-Bold').text(`PROGRAMA: `, { continued: true }).font('Helvetica').text(`${caseData.programa || 'Ciencia Política'} (Nivel 7-8)`);
       } else if (cat === 'HABEAS_DATA_DATACREDITO') {
         doc.fontSize(11).font('Helvetica-Bold').text('REFERENCIA: PETICIÓN DE HÁBEAS DATA FINANCIERO Y CADUCIDAD DE REPORTE NEGATIVO (Ley 1266 de 2008 & Ley 2157 de 2021)', { underline: true });
         doc.moveDown(0.5);
         doc.fontSize(10).font('Helvetica-Bold').text(`PETICIONARIO: `, { continued: true }).font('Helvetica').text(`${caseData.nombre} (C.C. No. ${caseData.cedula})`);
         doc.fontSize(10).font('Helvetica-Bold').text(`ENTIDAD FUENTE / OPERADOR: `, { continued: true }).font('Helvetica').text(`${caseData.entidadAccionada}`);
+      } else if (cat === 'CANCELACION_ACADEMICA_SALUD') {
+        doc.text(`HONORABLE CONSEJO DE FACULTAD / COMITÉ DE ASUNTOS ESTUDIANTILES`);
+        doc.fontSize(10).font('Helvetica').text(`${caseData.entidadAccionada || 'Facultad de Derecho y Ciencias Políticas - Universidad de Antioquia'}`);
       } else if (cat === 'RECURSO_ADMINISTRATIVO') {
         doc.fontSize(11).font('Helvetica-Bold').text('REFERENCIA: RECURSO DE REPOSICIÓN Y EN SUBSIDIO DE APELACIÓN EN VÍA ADMINISTRATIVA (Arts. 74 y 76 CPACA)', { underline: true });
         doc.moveDown(0.5);
@@ -131,6 +142,11 @@ function generateLegalPDF(caseData) {
       } else if (cat === 'NULIDAD_CPACA') {
         doc.text('• Artículos 137, 138, 161, 164, 229 y 231 del CPACA (Ley 1437 de 2011 reformado por Ley 2080 de 2021).');
         doc.text('• Artículo 29 de la Constitución Política (Debido Proceso Administrativo).');
+      } else if (cat === 'CANCELACION_ACADEMICA_SALUD') {
+        doc.fontSize(11).font('Helvetica-Bold').text('REFERENCIA: SOLICITUD DE CANCELACIÓN EXTEMPORÁNEA DE ASIGNATURAS Y PROTECCIÓN DE PERMANENCIA UNIVERSITARIA', { underline: true });
+        doc.moveDown(0.5);
+        doc.fontSize(10).font('Helvetica-Bold').text(`SOLICITANTE: `, { continued: true }).font('Helvetica').text(`${caseData.nombre} (C.C. No. ${caseData.cedula})`);
+        doc.fontSize(10).font('Helvetica-Bold').text(`PROGRAMA: `, { continued: true }).font('Helvetica').text(`${caseData.programa || 'Ciencia Política'} (Nivel 7-8)`);
       } else if (cat === 'HABEAS_DATA_DATACREDITO') {
         doc.text('• Ley Estatutaria 1266 de 2008 y Ley 2157 de 2021 (Borrón y Cuenta Nueva).');
         doc.text('• Sentencias C-1011 de 2008 y C-282 de 2021 de la Corte Constitucional.');
@@ -165,6 +181,11 @@ function generateLegalPDF(caseData) {
         doc.text(`PRIMERA: Declarar la NULIDAD del acto administrativo No. ${caseData.actoAdministrativoNumero || '[Resolución]'}, expedido por ${caseData.entidadAccionada}.`);
         doc.moveDown(0.3);
         doc.text('SEGUNDA: A título de RESTABLECIMIENTO DEL DERECHO, ordenar el reintegro o satisfacción patrimonial plena del derecho desconocido.');
+      } else if (cat === 'CANCELACION_ACADEMICA_SALUD') {
+        doc.fontSize(11).font('Helvetica-Bold').text('REFERENCIA: SOLICITUD DE CANCELACIÓN EXTEMPORÁNEA DE ASIGNATURAS Y PROTECCIÓN DE PERMANENCIA UNIVERSITARIA', { underline: true });
+        doc.moveDown(0.5);
+        doc.fontSize(10).font('Helvetica-Bold').text(`SOLICITANTE: `, { continued: true }).font('Helvetica').text(`${caseData.nombre} (C.C. No. ${caseData.cedula})`);
+        doc.fontSize(10).font('Helvetica-Bold').text(`PROGRAMA: `, { continued: true }).font('Helvetica').text(`${caseData.programa || 'Ciencia Política'} (Nivel 7-8)`);
       } else if (cat === 'HABEAS_DATA_DATACREDITO') {
         doc.text(`PRIMERA: Ordenar la ELIMINACIÓN INMEDIATA del reporte negativo caducado en centrales de riesgo.`);
         doc.moveDown(0.3);
