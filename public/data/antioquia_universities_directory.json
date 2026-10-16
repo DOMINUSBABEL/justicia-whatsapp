@@ -1,0 +1,102 @@
+{
+  "UDEA": {
+    "nombre": "Universidad de Antioquia (UdeA)",
+    "sedePrincipal": "Ciudad Universitaria, Medellín + 9 Sedes Regionales (Urabá, Bajo Cauca, Oriente, Suroeste, Occidente, Norte, Nordeste, Magdalena Medio)",
+    "consultorioJuridico": "Consultorio Jurídico y Centro de Conciliación 'Guillermo Peña Alzate'",
+    "correoConsultorio": "consultoriojuridico@udea.edu.co",
+    "facultades": {
+      "DERECHO_Y_CIENCIA_POLITICA": {
+        "nombre": "Facultad de Derecho y Ciencias Políticas",
+        "organoColegiado": "Honorable Consejo de Facultad",
+        "pregrados": ["Derecho", "Ciencia Política"],
+        "correoSecretaria": "consejo.derechoypolitica@udea.edu.co",
+        "ubicacion": "Bloque 14, Ciudad Universitaria"
+      },
+      "MEDICINA": {
+        "nombre": "Facultad de Medicina",
+        "organoColegiado": "Honorable Consejo de Facultad",
+        "correoSecretaria": "consejofacultadmedicina@udea.edu.co"
+      },
+      "INGENIERIA": {
+        "nombre": "Facultad de Ingeniería",
+        "organoColegiado": "Honorable Consejo de Facultad",
+        "correoSecretaria": "consejofacultadingenieria@udea.edu.co"
+      }
+    }
+  },
+  "EAFIT": {
+    "nombre": "Universidad EAFIT",
+    "sedePrincipal": "Campus El Poblado, Medellín / Llanogrande",
+    "consultorioJuridico": "Consultorio Jurídico y Centro de Conciliación EAFIT",
+    "correoConsultorio": "cjuridico@eafit.edu.co",
+    "facultades": {
+      "DERECHO": {
+        "nombre": "Escuela de Derecho",
+        "organoColegiado": "Consejo de Escuela de Derecho",
+        "pregrados": ["Derecho"],
+        "correoSecretaria": "derecho@eafit.edu.co"
+      }
+    }
+  },
+  "UPB": {
+    "nombre": "Universidad Pontificia Bolivariana (UPB)",
+    "sedePrincipal": "Ecocampus Laureles, Medellín",
+    "consultorioJuridico": "Consultorio Jurídico y Centro de Conciliación Pío XII",
+    "correoConsultorio": "consultorio.juridico@upb.edu.co",
+    "facultades": {
+      "DERECHO_Y_CIENCIAS_POLITICAS": {
+        "nombre": "Escuela de Derecho y Ciencias Políticas",
+        "organoColegiado": "Consejo de Facultad",
+        "pregrados": ["Derecho", "Ciencias Políticas"],
+        "correoSecretaria": "derecho.med@upb.edu.co"
+      }
+    }
+  },
+  "UNILASALLISTA": {
+    "nombre": "Corporación Universitaria Lasallista",
+    "sedePrincipal": "Caldas, Antioquia (Sur del Valle de Aburrá)",
+    "consultorioJuridico": "Centro de Prácticas y Proyección Social Lasallista",
+    "correoConsultorio": "admisiones@lasallista.edu.co",
+    "facultades": {
+      "CIENCIAS_SOCIALES_Y_EDUCACION": {
+        "nombre": "Facultad de Ciencias Sociales y Educación",
+        "organoColegiado": "Consejo de Facultad",
+        "correoSecretaria": "sociales@lasallista.edu.co"
+      }
+    }
+  },
+  "UNAL_MED": {
+    "nombre": "Universidad Nacional de Colombia - Sede Medellín",
+    "sedePrincipal": "Núcleo El Volador, Medellín",
+    "facultades": {
+      "CIENCIAS_HUMANAS_Y_ECONOMICAS": {
+        "nombre": "Facultad de Ciencias Humanas y Económicas (FCHE)",
+        "organoColegiado": "Consejo de Facultad",
+        "pregrados": ["Ciencia Política", "Economía", "Historia"],
+        "correoSecretaria": "cfche_med@unal.edu.co"
+      },
+      "MINAS": {
+        "nombre": "Facultad de Minas",
+        "organoColegiado": "Consejo de Facultad de Minas",
+        "correoSecretaria": "cfminas_med@unal.edu.co"
+      }
+    }
+  },
+  "UDEM": {
+    "nombre": "Universidad de Medellín (UdeM)",
+    "sedePrincipal": "Belén Los Alpes, Medellín",
+    "consultorioJuridico": "Consultorio Jurídico Universidad de Medellín",
+    "correoConsultorio": "consultoriojuridico@udemedellin.edu.co"
+  },
+  "CES": {
+    "nombre": "Universidad CES",
+    "sedePrincipal": "El Poblado, Medellín",
+    "consultorioJuridico": "Consultorio Jurídico CES",
+    "correoConsultorio": "consultoriojuridico@ces.edu.co"
+  },
+  "EIA": {
+    "nombre": "Universidad EIA",
+    "sedePrincipal": "Envigado / Las Palmas, Antioquia",
+    "correoConsultorio": "secretariageneral@eia.edu.co"
+  }
+}
