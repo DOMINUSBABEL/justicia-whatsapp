@@ -1,11 +1,13 @@
 {
   "name": "justicia-whatsapp-openclaw",
-  "version": "2.1.0",
-  "description": "JusticIA WhatsApp: Harness Constitucional & Asistente de Litigio Estratégico para la Ruralidad de Antioquia (Agenda Antioquia 2040 | Cátedra G8)",
+  "version": "2.5.0",
+  "description": "JusticIA WhatsApp: Harness Constitucional, Motor de Subsunción Jurídica S(K), Analítica Territorial (125 Municipios) y Portal Web Autónomo (Agenda Antioquia 2040 | Cátedra G8)",
   "main": "src/justicia-whatsapp-bot.js",
   "scripts": {
     "start": "node src/justicia-whatsapp-bot.js",
-    "simulate": "node src/simulator-cli.js"
+    "simulate": "node src/simulator-cli.js",
+    "web": "node src/api-server.js",
+    "test": "node --test tests/*.test.js"
   },
   "keywords": [
     "whatsapp",
@@ -15,7 +17,8 @@
     "antioquia2040",
     "openclaw",
     "tutela",
-    "derecho-de-peticion"
+    "derecho-de-peticion",
+    "catedra-g8"
   ],
   "author": "Agenda Antioquia 2040 & Cátedra G8",
   "license": "MIT",

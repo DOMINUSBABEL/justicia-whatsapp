@@ -47,9 +47,10 @@ function runOnboardingWizard(onStartServerCallback, onRunSimulatorCallback) {
     console.log(`  [5] 🔒 Gestionar Modo de Acceso (Todos los chats vs Lista Blanca)`);
     console.log(`  [6] 🖥️  Ejecutar Simulador Interactivo de Consola (Offline)`);
     console.log(`  [7] 📊 Ver Diagnóstico de Estado y Salud del Protocolo`);
+    console.log(`  [8] 🌐 Iniciar Sitio Web Oficial & Panel Analítico (http://localhost:3080)`);
     console.log(`  [0] ❌ Salir\n`);
 
-    rl.question('👉 Selecciona una opción (0-7): ', (choice) => {
+    rl.question('👉 Selecciona una opción (0-8): ', (choice) => {
       const option = choice.trim();
 
       switch (option) {
@@ -83,6 +84,13 @@ function runOnboardingWizard(onStartServerCallback, onRunSimulatorCallback) {
         case '7':
           showDiagnostics(rl, mainMenu);
           break;
+
+        case '8': {
+          rl.close();
+          const { startWebPortal } = require('./api-server');
+          startWebPortal(3080);
+          break;
+        }
 
         case '0':
           console.log('\n👋 Saliendo de JusticIA Onboarding. ¡Hasta pronto!\n');
