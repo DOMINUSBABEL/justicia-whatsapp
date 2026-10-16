@@ -2,12 +2,20 @@ const fs = require('fs');
 const path = require('path');
 const sessionManager = require('./session-manager');
 const { generateLegalPDF } = require('./pdf-generator');
+const {
+  runFormalLegalSubsunction,
+  resolveMunicipality
+} = require('./legal-subsunction-engine');
+const {
+  registerNewCaseFromSubsunction
+} = require('./analytics-manager');
 
 const DIRECTORY_FILE = path.join(__dirname, '..', 'data', 'antioquia_directory.json');
 let antioquiaDir = {};
 try {
   if (fs.existsSync(DIRECTORY_FILE)) {
-    antioquiaDir = JSON.parse(fs.readFileSync(DIRECTORY_FILE, 'utf8'));
+    const raw = JSON.parse(fs.readFileSync(DIRECTORY_FILE, 'utf8'));
+    antioquiaDir = raw.municipios || raw;
   }
 } catch (e) {
   console.error('Error cargando directorio de Antioquia:', e.message);
@@ -23,7 +31,7 @@ function normalizeText(text) {
 function isActivationKeyword(rawText) {
   if (!rawText) return false;
   const clean = normalizeText(rawText).replace(/[!¡?¿,.\-_]/g, ' ').replace(/\s+/g, ' ').trim();
-  
+
   const triggers = [
     'hola',
     'hola justicia',
@@ -53,7 +61,6 @@ function isExitOrCancelIntent(rawText, currentState) {
   if (!rawText) return false;
   const clean = normalizeText(rawText).replace(/[!¡?¿,.\-_]/g, ' ').replace(/\s+/g, ' ').trim();
 
-  // Si el mensaje es largo (> 40 caracteres), es una narrativa fáctica, no una salida
   if (clean.length > 40) return false;
 
   const explicitExitKeywords = [
@@ -102,8 +109,7 @@ function isExitOrCancelIntent(rawText, currentState) {
 function isHesitationOrConfusion(rawText) {
   if (!rawText) return false;
   const clean = normalizeText(rawText).replace(/[!¡?¿,.\-_]/g, ' ').replace(/\s+/g, ' ').trim();
-  
-  // Si el mensaje es una narrativa de más de 35 caracteres, NO es vacilación
+
   if (clean.length > 35) return false;
 
   const shortHesitations = [
@@ -151,17 +157,27 @@ function isPlausibleName(rawText) {
   return /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s\.\-]{4,60}$/.test(rawText.trim());
 }
 
+/**
+ * Resuelve información del municipio entre los 125 municipios de Antioquia.
+ */
 function findMunicipioInfo(inputMun) {
-  const norm = normalizeText(inputMun);
-  for (const [key, data] of Object.entries(antioquiaDir)) {
-    if (norm.includes(key) || key.includes(norm)) {
-      return data;
-    }
+  const resolved = resolveMunicipality(inputMun);
+  if (resolved && resolved.data) {
+    const d = resolved.data;
+    return {
+      municipio: d.nombre_oficial || d.municipio || inputMun.trim(),
+      subregion: d.subregion || 'Antioquia',
+      juzgado: d.juzgado_reparto?.nombre || d.juzgado || `Juzgado Promiscuo Municipal de ${d.nombre_oficial}`,
+      email_juzgado: d.juzgado_reparto?.email || d.email_juzgado || 'recepcionmemoriales@cendoj.ramajudicial.gov.co',
+      personeria: d.personeria?.nombre || d.personeria || `Personería Municipal de ${d.nombre_oficial}`,
+      email_personeria: d.personeria?.email || d.email_personeria || 'personeria@antioquia.gov.co'
+    };
   }
+
   const pretty = inputMun.trim().charAt(0).toUpperCase() + inputMun.trim().slice(1);
   return {
     municipio: pretty,
-    subregion: "Antioquia Rural",
+    subregion: 'Antioquia Rural',
     juzgado: `Juzgado Promiscuo Municipal de ${pretty}`,
     email_juzgado: `j01prmpal${normalizeText(pretty).replace(/\s+/g, '')}@cendoj.ramajudicial.gov.co`,
     personeria: `Personería Municipal de ${pretty}`,
@@ -170,32 +186,15 @@ function findMunicipioInfo(inputMun) {
 }
 
 /**
- * Extractor Semántico de Entidades y Hechos Clave
+ * Extractor Semántico y Subsunción Formal S(K) = <H, E, T, V>
  */
-function extractEntitiesAndFacts(rawText) {
-  const norm = normalizeText(rawText);
-  let entidad = 'Entidad / Autoridad Competente';
-  let categoria = 'TUTELA_SALUD';
-
-  if (norm.includes('savia') || norm.includes('salud') || norm.includes('sura') || norm.includes('nueva eps') || norm.includes('sanitas') || norm.includes('coomeva') || norm.includes('medisalud') || norm.includes('insulina') || norm.includes('droga') || norm.includes('pastilla') || norm.includes('medicina') || norm.includes('cita')) {
-    categoria = 'TUTELA_SALUD';
-    if (norm.includes('savia')) entidad = 'Savia Salud EPS';
-    else if (norm.includes('sura')) entidad = 'EPS Sura';
-    else if (norm.includes('nueva eps')) entidad = 'Nueva EPS';
-    else if (norm.includes('sanitas')) entidad = 'EPS Sanitas';
-    else entidad = 'Entidad Promotora de Salud (EPS)';
-  } else if (norm.includes('epm') || norm.includes('agua') || norm.includes('luz') || norm.includes('energia') || norm.includes('factura') || norm.includes('recibo') || norm.includes('servicios publicos')) {
-    categoria = 'PETICION_GENERAL';
-    entidad = norm.includes('epm') ? 'Empresas Públicas de Medellín (EPM)' : 'Empresa de Servicios Públicos Domiciliarios';
-  } else if (norm.includes('datacredito') || norm.includes('cifin') || norm.includes('credito') || norm.includes('banco') || norm.includes('reporte')) {
-    categoria = 'HABEAS_DATA_DATACREDITO';
-    entidad = 'Datacrédito Experian / TransUnion CIFIN';
-  } else if (norm.includes('alcaldia') || norm.includes('resolucion') || norm.includes('decreto') || norm.includes('despido') || norm.includes('sancion') || norm.includes('predial')) {
-    categoria = 'NULIDAD_CPACA';
-    entidad = 'Alcaldía Municipal / Entidad Administrativa';
-  }
-
-  return { entidad, categoria };
+function extractEntitiesAndFacts(rawText, municipalityHint = '') {
+  const subsunction = runFormalLegalSubsunction(rawText, { municipalityHint });
+  return {
+    entidad: subsunction.targetEntity,
+    categoria: subsunction.route.id,
+    subsunction
+  };
 }
 
 /**
@@ -208,12 +207,12 @@ async function processMessage(senderJid, rawMessage, mediaPayload = null) {
   const state = session.flowState;
   const isClaro = (session.languageMode || 'CLARO') === 'CLARO';
 
-  // 1. FILTRO DE ACTIVACIÓN CUANDO LA SESIÓN ESTÁ INACTIVA O FINALIZADA
+  // 1. FILTRO DE ACTIVACIÓN O REINICIO EXPLÍCITO (!hola / reiniciar / reset)
   const isInactive = !state || state === 'IDLE' || state === 'COMPLETED' || state === 'CANCELLED';
-  if (isInactive) {
-    if (isActivationKeyword(text) || lower === 'reiniciar' || lower === 'reset') {
-      sessionManager.resetSession(senderJid);
-      sessionManager.updateSession(senderJid, { flowState: 'HABEAS_DATA' });
+  const isExplicitRestart = lower === '!hola' || lower === 'reiniciar' || lower === 'reset';
+  if (isExplicitRestart || (isInactive && isActivationKeyword(text))) {
+    sessionManager.resetSession(senderJid);
+    sessionManager.updateSession(senderJid, { flowState: 'HABEAS_DATA' });
 
       return {
         text: (
@@ -221,9 +220,9 @@ async function processMessage(senderJid, rawMessage, mediaPayload = null) {
           "  ⚖️  *JUSTICIA WHATSAPP — LITIGIO ESTRATÉGICO*\n" +
           "  🏛️  _Agenda Antioquia 2040 | Cátedra G8_\n" +
           "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n" +
-          "¡Hola! 👋 Le damos una cálida bienvenida a la plataforma comunitaria para la defensa integral de sus derechos en Antioquia.\n\n" +
-          "📋 *TRATAMIENTO ÉTICO DE DATOS (Ley 1581 de 2012):*\n" +
-          "Para analizar la teoría de su caso y construir una estrategia jurídica sólida y verificada, " +
+          "¡Hola! 👋 Le damos una cálida bienvenida a la plataforma comunitaria para la defensa integral de sus derechos en los 125 municipios de Antioquia.\n\n" +
+          "📋 *TRATAMIENTO ÉTICO DE DATOS — Habeas Data (Ley 1581 de 2012):*\n" +
+          "Para analizar la teoría de su caso mediante subsunción constitucional y construir una estrategia jurídica sólida y verificada, " +
           "necesitamos tratar datos básicos y soportes de su situación. " +
           "Su información se procesa bajo estricta reserva y confidencialidad.\n\n" +
           "👉 *¿Autoriza el tratamiento de sus datos para iniciar la asesoría?*\n\n" +
@@ -231,7 +230,8 @@ async function processMessage(senderJid, rawMessage, mediaPayload = null) {
           "2️⃣ Responda *2* o *No* para cancelar y salir."
         )
       };
-    }
+  }
+  if (isInactive) {
     return null;
   }
 
@@ -259,7 +259,7 @@ async function processMessage(senderJid, rawMessage, mediaPayload = null) {
         "😊 *¡Tranquilo(a), no se preocupe!*\n\n" +
         "No necesita saber términos de leyes ni ser experto en computadores. Yo soy *JusticIA*, un asistente universitario para ayudarle a defender sus derechos.\n\n" +
         "👉 Simplemente cuénteme con sus palabras como si hablara con un amigo:\n" +
-        "• ¿Qué problema tiene con su EPS (Savia Salud, Nueva EPS), con su agua potable o con alguna entidad?\n" +
+        "• ¿Qué problema tiene con su EPS (Savia Salud, Nueva EPS), con su agua potable, con su universidad o con alguna entidad?\n" +
         "• O si prefiere, indíqueme su nombre completo para empezar a organizar su caso."
       )
     };
@@ -295,8 +295,8 @@ async function processMessage(senderJid, rawMessage, mediaPayload = null) {
     }
     sessionManager.updateSession(senderJid, { languageMode: mode, flowState: 'IDENTIFICACION_SUJETO' });
 
-    const ackText = mode === 'CLARO' 
-      ? "✅ *Modo Sencillo activado.* Construiremos su caso con lenguaje claro y cercano." 
+    const ackText = mode === 'CLARO'
+      ? "✅ *Modo Sencillo activado.* Construiremos su caso con lenguaje claro y cercano."
       : "⚖️ *Modo Técnico Jurídico activado.* Se aplicará el rigor sustantivo y procesal.";
 
     return {
@@ -335,9 +335,9 @@ async function processMessage(senderJid, rawMessage, mediaPayload = null) {
     sessionManager.updateSession(senderJid, { flowState: 'UBICACION_MUNICIPIO' });
     return {
       text: (
-        "📍 *UBICACIÓN TERRITORIAL EN ANTIOQUIA:*\n" +
+        "📍 *UBICACIÓN TERRITORIAL EN ANTIOQUIA (125 MUNICIPIOS):*\n" +
         "¿En cuál *Municipio de Antioquia* vive usted o sucedieron los hechos?\n" +
-        "_(Ej: Andes, Apartadó, Caucasia, Rionegro, Santa Fe de Antioquia, Yarumal, Segovia, Medellín, etc.)_"
+        "_(Ej: Andes, Apartadó, Caucasia, Rionegro, Santa Fe de Antioquia, Yarumal, Segovia, Caldas, Medellín, etc.)_"
       )
     };
   }
@@ -361,7 +361,7 @@ async function processMessage(senderJid, rawMessage, mediaPayload = null) {
         "  📖  *CONSTRUCCIÓN DE LA TEORÍA DEL CASO*\n" +
         "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n" +
         "Ahora cuéntenos detalladamente qué situación está viviendo:\n" +
-        "• ¿Con qué entidad tiene el problema (EPS Savia Salud, EPM, Alcaldía, Banco)?\n" +
+        "• ¿Con qué entidad tiene el problema (EPS Savia Salud, EPM, Universidad G8, Alcaldía, Banco, Empleador)?\n" +
         "• ¿Qué le están negando o qué daño le causaron?\n" +
         "• ¿Hace cuánto tiempo ocurrió y qué le han respondido?\n\n" +
         "👉 _Escriba su relato aquí con calma o envíe una nota de voz / foto de sus documentos:_"
@@ -369,26 +369,31 @@ async function processMessage(senderJid, rawMessage, mediaPayload = null) {
     };
   }
 
-  // 9. FASE: CURADURÍA DE LA TEORÍA DEL CASO & DIAGNÓSTICO DE FALTANTES
+  // 9. FASE: CURADURÍA DE LA TEORÍA DEL CASO & SUBSUNCIÓN FORMAL S(K) = <H, E, T, V>
   if (state === 'RELATO_LIBRE_HECHOS' || state === 'REQUERIMIENTO_PROBATORIO_O_COMPLEMENTO') {
     if (text.length < 5 && !mediaPayload) {
       return { text: "Por favor bríndenos un poco más de contexto o detalle sobre su caso para poder estructurarlo adecuadamente:" };
     }
 
-    const { entidad, categoria } = extractEntitiesAndFacts(text);
-    const tieneSoporte = !!mediaPayload || session.userData.tienePruebas;
-    
+    const { entidad, categoria, subsunction } = extractEntitiesAndFacts(text, session.userData.municipio);
+    const tieneSoporte = !!mediaPayload || session.userData.tienePruebas || subsunction.probative.psiScore >= 75;
+
     sessionManager.updateUserData(senderJid, {
-      descripcionHechos: text || session.userData.descripcionHechos || "Vulneración de derechos fundamentales.",
+      descripcionHechos: subsunction.curatedFacts || text || session.userData.descripcionHechos || "Vulneración de derechos fundamentales.",
       entidadAccionada: entidad,
       categoriaAccion: categoria,
-      tienePruebas: tieneSoporte
+      tienePruebas: tieneSoporte,
+      psiScore: subsunction.probative.psiScore,
+      vulnerabilityScore: subsunction.vulnerability.score,
+      urgencyLevel: subsunction.vulnerability.urgencyLevel,
+      requiresProvisionalMeasure: subsunction.vulnerability.requiresProvisionalMeasure,
+      normativeBasis: subsunction.route.normativeBasis,
+      jurisprudence: subsunction.route.jurisprudence
     });
 
     sessionManager.updateSession(senderJid, { flowState: 'EXPLORACION_MECANISMOS' });
 
-    // DIAGNÓSTICO DE TEORÍA DEL CASO Y FALTANTES
-    return getCaseTheoryDiagnostic(session.userData, isClaro);
+    return getCaseTheoryDiagnostic(session.userData, isClaro, subsunction);
   }
 
   // 10. FASE: EXPLORACIÓN CO-PARTICIPATIVA DE ESTRATEGIAS Y MECANISMOS LEGALES
@@ -396,7 +401,6 @@ async function processMessage(senderJid, rawMessage, mediaPayload = null) {
     const cleanChoice = lower.replace(/\D/g, '');
 
     if (cleanChoice === '1' || lower.includes('tutela') || lower.includes('oficio') || lower.includes('directa')) {
-      // Estrategia 1: Tutela Directa con Solicitud de Pruebas de Oficio
       sessionManager.updateUserData(senderJid, {
         viaProcesal: 'TUTELA',
         estrategiaElegida: 'ACCION_DIRECTA_CON_PRUEBAS_OFICIO'
@@ -405,35 +409,32 @@ async function processMessage(senderJid, rawMessage, mediaPayload = null) {
 
       return {
         text: (
-          "⚖️ *ESTRATEGIA SELECCIONADA: Acción de Tutela Inmediata con Pruebas de Oficio*\n\n" +
-          "Dado que existe urgencia o dificultad para obtener las pruebas directamente de la entidad, " +
-          "incorporaremos en la tutela el *Capítulo Especial de Solicitud de Pruebas de Oficio (Arts. 19 y 21 Dec. 2591/91)* " +
-          "y la *Inversión de la Carga de la Prueba*, solicitando al Juez que obligue a la entidad a aportar los documentos.\n\n" +
+          "⚖️ *ESTRATEGIA SELECCIONADA: Acción Constitucional Directa con Pruebas de Oficio*\n\n" +
+          "Dado que existe urgencia o asimetría probatoria frente a la entidad, " +
+          "incorporaremos en la minuta el *Capítulo Especial de Solicitud de Pruebas de Oficio (Arts. 19 y 21 Dec. 2591/91)* " +
+          "y la *Inversión de la Carga de la Prueba*, solicitando al Juez / Consejo que obligue a la entidad a aportar los antecedentes.\n\n" +
           getFinalReviewText(session.userData)
         )
       };
 
     } else if (cleanChoice === '2' || lower.includes('peticion') || lower.includes('previo') || lower.includes('historia')) {
-      // Estrategia 2: Mecanismo Previo (Derecho de Petición) para recaudar pruebas
       sessionManager.updateUserData(senderJid, {
         viaProcesal: 'PETICION',
-        categoriaAccion: 'PETICION_GENERAL',
+        categoriaAccion: session.userData.categoriaAccion === 'CANCELACION_ACADEMICA_SALUD' ? 'CANCELACION_ACADEMICA_SALUD' : 'PETICION_GENERAL',
         estrategiaElegida: 'MECANISMO_PREVIO_PETICION'
       });
       sessionManager.updateSession(senderJid, { flowState: 'CONFIRMACION_FINAL_EXPEDIENTE' });
 
       return {
         text: (
-          "📄 *ESTRATEGIA SELECCIONADA: Derecho de Petición Previo para Conseguir Pruebas*\n\n" +
-          "Excelente decisión estratégica. Redactaremos un *Derecho de Petición bajo la Ley 1755 de 2015* " +
-          "para exigir a la entidad la entrega inmediata de copias de su historia clínica, autorizaciones pendientes y justificación formal. " +
-          "Si no responden en los términos de ley (10 a 15 días), quedará configurada la violación directa para radicar tutela por desacato.\n\n" +
+          "📄 *ESTRATEGIA SELECCIONADA: Derecho de Petición Especial / Vía Administrativa Previa*\n\n" +
+          "Excelente decisión estratégica. Redactaremos una *Petición Constitucional bajo la Ley 1755 de 2015* " +
+          "para exigir a la entidad el pronunciamiento de fondo, copias del expediente y garantía del derecho en términos perentorios (10 a 15 días hábiles).\n\n" +
           getFinalReviewText(session.userData)
         )
       };
 
     } else if (cleanChoice === '3' || lower.includes('complementar') || lower.includes('adjuntar') || lower.includes('foto')) {
-      // Estrategia 3: Aportar más información o fotos
       sessionManager.updateSession(senderJid, { flowState: 'REQUERIMIENTO_PROBATORIO_O_COMPLEMENTO' });
 
       return {
@@ -448,8 +449,8 @@ async function processMessage(senderJid, rawMessage, mediaPayload = null) {
       return {
         text: (
           "Por favor elija una de las 3 opciones de estrategia:\n" +
-          "1️⃣ *1* para Tutela Directa (pidiendo al juez pruebas de oficio).\n" +
-          "2️⃣ *2* para Derecho de Petición Previo (para obligar a la entidad a entregar copias).\n" +
+          "1️⃣ *1* para Acción Directa / Tutela (pidiendo al juez pruebas de oficio).\n" +
+          "2️⃣ *2* para Derecho de Petición Previo (vía administrativa garantista).\n" +
           "3️⃣ *3* para Complementar más hechos o adjuntar fotos."
         )
       };
@@ -465,13 +466,25 @@ async function processMessage(senderJid, rawMessage, mediaPayload = null) {
         sessionManager.updateUserData(senderJid, { generatedPdfPath: pdfResult.filePath });
         sessionManager.updateSession(senderJid, { flowState: 'COMPLETED' });
 
+        // Registrar automáticamente en el Ledger Analítico Departamental
+        try {
+          const subsunction = runFormalLegalSubsunction(u.descripcionHechos, { municipalityHint: u.municipio });
+          registerNewCaseFromSubsunction(subsunction, {
+            name: u.nombre,
+            doc: u.cedula,
+            status: 'RADICADO'
+          });
+        } catch (ledgerErr) {
+          // No bloquear entrega de PDF si el registro analítico falla
+        }
+
         return {
           text: (
             "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n" +
             "  ⚖️  *¡EXPEDIENTE JURÍDICO FORMALIZADO!*\n" +
             "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n" +
-            `📄 Adjuntamos su minuta judicial completa (*${pdfResult.fileName}*), estructurada con la teoría del caso curada y la solicitud de pruebas de oficio.\n\n` +
-            `📍 *CANALES DE RADICACIÓN OFICIAL EN ${u.municipio.toUpperCase()} (ANTIOQUIA):*\n\n` +
+            `📄 Adjuntamos su minuta judicial completa (*${pdfResult.fileName}*), estructurada con la teoría del caso curada, léxico no patologizante y solicitud de pruebas de oficio.\n\n` +
+            `📍 *CANALES DE RADICACIÓN OFICIAL EN ${(u.municipio || 'MEDELLÍN').toUpperCase()} (ANTIOQUIA):*\n\n` +
             `1️⃣ *Radicación por Correo Electrónico:*\n` +
             `• Remita el archivo PDF adjunto a los siguientes despachos oficiales:\n` +
             `📧 *Despacho Judicial de Reparto:* \`${u.emailJuzgado}\`\n` +
@@ -503,26 +516,31 @@ async function processMessage(senderJid, rawMessage, mediaPayload = null) {
 /**
  * Generador del Diagnóstico de Teoría del Caso y Exploración de Mecanismos
  */
-function getCaseTheoryDiagnostic(u, isClaro) {
+function getCaseTheoryDiagnostic(u, isClaro, subsunction = null) {
   const tienePruebas = u.tienePruebas;
-  
+  const psiScore = subsunction?.probative?.psiScore || u.psiScore || 75;
+  const vulnScore = subsunction?.vulnerability?.score || u.vulnerabilityScore || 45;
+  const routeTitle = subsunction?.route?.title || u.categoriaAccion;
+
   return {
     text: (
       "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n" +
-      "  🔍  *ANÁLISIS DE LA TEORÍA DEL CASO*\n" +
+      "  🔍  *ANÁLISIS DE LA TEORÍA DEL CASO S(K)*\n" +
       "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n" +
-      `Hemos analizado minuciosamente su situación:\n\n` +
-      `👤 *Accionante:* ${u.nombre} (C.C. ${u.cedula}) en *${u.municipio}*.\n` +
+      `Hemos ejecutado la subsunción constitucional de su situación:\n\n` +
+      `👤 *Accionante:* ${u.nombre} (C.C. ${u.cedula}) en *${u.municipio}* (${u.subregion}).\n` +
       `🏢 *Entidad Responsable:* ${u.entidadAccionada}.\n` +
-      `📝 *Hechos Clave:* "${u.descripcionHechos}".\n` +
-      `📊 *Estado Probatorio:* ${tienePruebas ? '✅ Cuenta con soportes documentales' : '⚠️ *Faltan soportes documentales directos (fórmula o negativa por escrito)*'}.\n\n` +
+      `⚖️ *Tipología Subsumida:* ${routeTitle}.\n` +
+      `📝 *Hechos Curados:* "${u.descripcionHechos}".\n` +
+      `📊 *Suficiencia Probatoria Ψ(E):* *${psiScore}/100* (${tienePruebas ? '✅ Respaldo suficiente por Buena Fe Art. 83 C.P.' : '⚠️ Se recomienda solicitar pruebas de oficio'}).\n` +
+      `🛡️ *Índice de Protección Constitucional V(K):* *${vulnScore}/100*.\n\n` +
       "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
       "⚖️ *EXPLORACIÓN DE MECANISMOS LEGALES DISPONIBLES:*\n" +
       "Para garantizar el éxito de su caso sin que sea rechazado por el juez, tenemos 3 caminos:\n\n" +
       "1️⃣ *Acción de Tutela Directa (Con Solicitud de Pruebas de Oficio)*\n" +
-      "   👉 _Recomendado si hay urgencia médica._ Procedemos con la tutela y le solicitamos formalmente al Juez que obligue a la entidad a aportar la historia clínica e invierta la carga de la prueba (Arts. 19/21 Dec. 2591/91).\n\n" +
-      "2️⃣ *Mecanismo Legal Previo (Derecho de Petición de Copias y Entrega)*\n" +
-      "   👉 Radicamos primero una petición formal exigiendo los documentos y el servicio en 10-15 días, para blindar la prueba antes de acudir a la tutela.\n\n" +
+      "   👉 _Recomendado si hay urgencia vital o académica._ Procedemos con la acción y le solicitamos formalmente al Juez que obligue a la entidad a aportar los antecedentes e invierta la carga de la prueba (Arts. 19/21 Dec. 2591/91).\n\n" +
+      "2️⃣ *Mecanismo Legal Previo (Derecho de Petición Especial / Vía Administrativa)*\n" +
+      "   👉 Radicamos primero una petición formal fundamentada exigiendo el derecho y copias del expediente en 10-15 días hábiles.\n\n" +
       "3️⃣ *Complementar Hechos o Enviar Fotos Ahora*\n" +
       "   👉 Si tiene fotos de fórmulas, órdenes o desea ampliar su relato.\n\n" +
       "👉 *¿Qué camino prefiere tomar? Responda 1, 2 o 3:*"
@@ -538,8 +556,8 @@ function getFinalReviewText(u) {
     `• *Titular:* ${u.nombre} (C.C. ${u.cedula})\n` +
     `• *Municipio:* ${u.municipio} (${u.subregion})\n` +
     `• *Entidad:* ${u.entidadAccionada}\n` +
-    `• *Vía Procesal:* ${u.viaProcesal === 'TUTELA' ? 'Acción de Tutela con Medida Cautelar y Pruebas de Oficio' : 'Derecho de Petición de Información y Copias'}\n` +
-    `• *Capítulo Probatorio:* ${u.estrategiaElegida === 'ACCION_DIRECTA_CON_PRUEBAS_OFICIO' ? 'Solicitud Judicial de Decreto de Pruebas de Oficio (Art. 19 Dec. 2591)' : 'Reclamación Directa'}\n\n` +
+    `• *Vía Procesal:* ${u.viaProcesal === 'TUTELA' ? 'Acción de Tutela con Medida Cautelar y Pruebas de Oficio' : 'Derecho de Petición Constitucional Especial'}\n` +
+    `• *Capítulo Probatorio:* ${u.estrategiaElegida === 'ACCION_DIRECTA_CON_PRUEBAS_OFICIO' ? 'Solicitud Judicial de Decreto de Pruebas de Oficio (Art. 19 Dec. 2591)' : 'Presunción de Buena Fe Art. 83 C.P. y Carga Dinámica'}\n\n` +
     "👉 *¿Confirma la generación del documento formal para radicación?*\n\n" +
     "1️⃣ Responda *1* o *Sí* para compilar y descargar su *PDF oficial*.\n" +
     "2️⃣ Responda *2* para modificar la estrategia."
@@ -550,5 +568,7 @@ module.exports = {
   processMessage,
   isActivationKeyword,
   isExitOrCancelIntent,
-  isHesitationOrConfusion
+  isHesitationOrConfusion,
+  extractEntitiesAndFacts,
+  findMunicipioInfo
 };
