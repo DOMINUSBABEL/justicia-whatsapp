@@ -317,3 +317,32 @@ Distribuido bajo la Licencia [MIT](LICENSE). Iniciativa comunitaria adscrita a l
 - **Regla de las 3 Páginas**: Generación sintética y contundente (~1.000 palabras) para maximizar la lectura y acogida por cuerpos colegiados.
 - **Generación Dual DOCX / PDF en es-CO**: Salida editable sin subrayados ortográficos rojos en Microsoft Word y PDF listo para radicación.
 - **Bucle de Retroalimentación por Notas de Voz (PTT)**: Parser de indicaciones coloquiales para acotamiento, des-patologización y toque humano.
+
+---
+
+## 🌐 11. Plataforma Web Interactiva & Estudio Jurídico en Vivo (v2.5.0)
+
+El repositorio incluye en [`public/`](public/) un **Frontend completo y autónomo** bajo el estándar visual **Palo Alto Networks Enterprise × Crystal-Clear Glassmorphism × Colores Antioqueños**:
+
+- 🔗 **Despliegue Oficial en Vivo:** [https://babylonias.com/justicia-whatsapp/](https://babylonias.com/justicia-whatsapp/) (integrado también en [https://babylonias.com/#panel-demo](https://babylonias.com/#panel-demo)).
+- 🧠 **Núcleo Holográfico 3D Multimodo (`#miaBrainCanvas`)**: Proyección interactiva con 3 modos (*Red Neuronal*, *Esfera Giroscópica $\langle H, E, T, V \rangle$* y *9 Subregiones de Antioquia*).
+- ⚡ **Pipeline Constitucional Animado de 7 Estaciones (`#flujo`)**: Visualización en tiempo real del grafo determinista y bifurcación de Medida Provisional de 48h (Art. 7 D.2591/91).
+- 🖥️ **Estudio de Comando en Vivo de 6 Pestañas (`#panel-real`)**:
+  1. *Telemetría & Subregiones*
+  2. *Laboratorio de Subsunción $\mathcal{S}(\mathcal{K})$ en Vivo*
+  3. *CRM & Tablero Kanban de Expedientes*
+  4. *Alertas SLA & Vencimientos de Términos*
+  5. *Directorio de los 125 Municipios + 8 Universidades G8*
+  6. *Control de Sesión Signal & Auto-Healer*
+- 📱 **Simulador de WhatsApp en Vivo + Despliegue Autónomo**: Ejecutable tanto conectado al servidor Node.js (`npm run web` en el puerto `3090`) como en modo 100% estático en el navegador (`public/legal-engine-browser.js`).
+
+### Ejecución Local del Sitio Web y Estudio Analítico
+```bash
+npm run web
+# O en Windows: .\start-web.bat
+# Abre http://localhost:3090 en tu navegador
+```
+
+### 🤝 Contribuciones y Pull Requests (Backend & Frontend)
+Aceptamos **Pull Requests** para mejorar tanto el motor jurídico (`src/`, `data/`) como el sitio web (`public/`). Consulta la guía detallada en [`CONTRIBUTING.md`](CONTRIBUTING.md) y utiliza la plantilla automática de PR al abrir tu solicitud.
+
