@@ -539,7 +539,15 @@ section[id] {
   white-space: nowrap;
 }
 
+.canvas-mode-group {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .canvas-mode-btn {
+  pointer-events: auto;
   padding: 6px 11px;
   border-radius: var(--radius-pill);
   font-family: var(--font-mono);

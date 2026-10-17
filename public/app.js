@@ -350,10 +350,10 @@
         drawTriangle(amb.x * width, amb.y * height, amb.size, amb.angle, `rgba(${r},${g},${b},0.22)`);
       }
 
-      const isCompact = width < 520;
-      const scale = Math.min(width, height) * (isCompact ? 0.31 : 0.275);
+      const isCompact = width < 540;
+      const scale = Math.min(width, height) * (isCompact ? 0.28 : 0.275);
       const centerX = width * 0.5;
-      const centerY = height * (isCompact ? 0.51 : 0.5);
+      const centerY = height * (isCompact ? 0.53 : 0.5);
 
       // Subtle central crystal halo
       const radGrad = ctx.createRadialGradient(centerX, centerY, 10, centerX, centerY, scale * 1.25);
@@ -459,7 +459,7 @@
           const z2 = z1 * cosX + hub.y * sinX;
           const persp = 3.1 / (3.1 - z2 * 0.65);
           const hx = centerX + x1 * scale * persp;
-          const hy = Math.max(66, Math.min(height - 68, centerY + y2 * scale * persp - 14));
+          const hy = Math.max(isCompact ? 78 : 66, Math.min(height - 68, centerY + y2 * scale * persp - 14));
           ctx.fillStyle = 'rgba(6, 47, 29, 0.85)';
           ctx.fillText(hub.name, hx, hy);
         }
