@@ -1825,7 +1825,7 @@ section[id] {
   .deploy-interactive-shell,
   .install-stack,
   .studio-body {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .hero-canvas-stage {
@@ -1845,6 +1845,7 @@ section[id] {
 
   /* Studio Sidebar -> Horizontal Touch-Scrollable Pill Bar */
   .studio-sidebar {
+    min-width: 0;
     border-right: none;
     border-bottom: 1px solid var(--border-crystal);
     padding: 14px 16px;
@@ -1858,6 +1859,8 @@ section[id] {
   .studio-nav-list {
     display: flex;
     flex-direction: row;
+    min-width: 0;
+    max-width: 100%;
     overflow-x: auto;
     gap: 8px;
     padding-bottom: 4px;
@@ -1893,6 +1896,7 @@ section[id] {
   }
 
   .studio-workspace {
+    min-width: 0;
     max-height: none;
     overflow-y: visible;
     padding: 24px 20px;
@@ -2261,6 +2265,8 @@ section[id] {
     left: 10px;
     right: 10px;
     gap: 6px;
+    flex-direction: column;
+    align-items: stretch;
   }
 
   .canvas-hud-pill {
@@ -2270,17 +2276,20 @@ section[id] {
     padding: 5px 10px;
   }
 
-  .canvas-hud-top > div:last-child {
+  .canvas-mode-group {
     width: 100%;
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 4px !important;
   }
 
   .canvas-mode-btn {
-    flex: 1;
+    min-width: 0;
     text-align: center;
     padding: 6px 6px;
     font-size: 0.62rem;
+    line-height: 1.25;
+    white-space: normal;
   }
 
   .canvas-hud-bottom {
